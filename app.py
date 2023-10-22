@@ -30,6 +30,9 @@ def predict():
 
     return render_template('disease_predicted.html', symptoms=l1, dt_prediction=dt_prediction, rf_prediction=rf_prediction, nb_prediction=nb_prediction)
 
+@app.route('/medicine')
+def meds():
+    return render_template('medicine.html')
 
 if __name__=='__main__':
     app.run(debug=True,port=8080)
