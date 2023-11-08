@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nearest Doctors</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nearest Doctors</h1>
+    
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([{latitude}, {longitude}], 10); // Set user's location
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var nearestDoctors = JSON.parse('{{ nearest_doctors|tojson|safe }}'); // Parse JSON data for nearest doctors
+        var allDoctors = JSON.parse('{{ all_doctors|tojson|safe }}'); // Parse JSON data for all doctors
+
+        for (var i = 0; i < nearestDoctors.length; i++) {
+            var doctor = nearestDoctors[i];
+            if (doctor.distance <= 10) { // Check if doctor is within 10km radius
+                L.marker([doctor.latitude, doctor.longitude]).addTo(map)
+                    .bindPopup('Doctor: ' + doctor.name + '<br>Distance: ' + doctor.distance + ' km')
+                    .openPopup();
+            }
+        }
+
+        for (var i = 0; i < allDoctors.length; i++) {
+            var doctor = allDoctors[i];
+            if (doctor.distance <= 10) { // Check if doctor is within 10km radius
+                L.marker([doctor.latitude, doctor.longitude]).addTo(map)
+                    .bindPopup('Doctor: ' + doctor.name)
+                    .openPopup();
+            }
+        }
+    </script>
+</body>
+</html>
