@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="shortcut icon" href="#">
     <title>Nearest Doctors</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
@@ -13,22 +14,45 @@
     <h1>Nearest Doctors</h1>
     
     <div id="map"></div>
-
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        var map = L.map('map').setView([{latitude}, {longitude}], 10); // Set user's location
-        
+        function parseJSONWithTrim(data) {
+            data = data.trim();
+            data = JSON.stringify(data);
+            return JSON.parse(data);
+        }
+
+        var latitude = '{{ latitude }}';
+        var longitude = '{{ longitude }}';
+        var map = L.map('map').setView([latitude, longitude], 10); // Set user's location
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        var nearestDoctors = JSON.parse('{{ nearest_doctors|tojson|safe }}'); // Parse JSON data for nearest doctors
-        var allDoctors = JSON.parse('{{ all_doctors|tojson|safe }}'); // Parse JSON data for all doctors
+        var nearestDoctors = parseJSONWithTrim('{{ nearest_doctors_json|tojson|safe }}');
+        var allDoctors = parseJSONWithTrim('{{ all_doctors_json|tojson|safe }}');
 
+        // Create an icon for your location (red pin)
+        var userIcon = L.divIcon({className: 'custom-icon', html: '<div style="background-color: red;" class="pin"></div>'});
+
+        // Add your location to the map
+        L.marker([latitude, longitude], {icon: userIcon}).addTo(map)
+            .bindPopup('Your Location')
+            .openPopup();
+
+        // Create icons for doctors
+        var nearestDoctorIcon = L.divIcon({className: 'custom-icon', html: '<div style="background-color: blue;" class="pin"></div>'});
+        var otherDoctorIcon = L.divIcon({className: 'custom-icon', html: '<div style="background-color: yellow;" class="pin"></div>'});
+
+        console.log('Nearest Doctors:', nearestDoctors);
+        console.log('All Doctors:', allDoctors);
+        // Add markers for doctors
         for (var i = 0; i < nearestDoctors.length; i++) {
             var doctor = nearestDoctors[i];
-            if (doctor.distance <= 10) { // Check if doctor is within 10km radius
-                L.marker([doctor.latitude, doctor.longitude]).addTo(map)
+            // Check if 'distance' is available in the JSON data
+            if (doctor.distance && doctor.distance <= 10) {
+                L.marker([doctor.latitude, doctor.longitude], {icon: nearestDoctorIcon}).addTo(map)
                     .bindPopup('Doctor: ' + doctor.name + '<br>Distance: ' + doctor.distance + ' km')
                     .openPopup();
             }
@@ -36,8 +60,9 @@
 
         for (var i = 0; i < allDoctors.length; i++) {
             var doctor = allDoctors[i];
-            if (doctor.distance <= 10) { // Check if doctor is within 10km radius
-                L.marker([doctor.latitude, doctor.longitude]).addTo(map)
+            // Check if 'distance' is available in the JSON data
+            if (doctor.distance && doctor.distance <= 10) {
+                L.marker([doctor.latitude, doctor.longitude], {icon: otherDoctorIcon}).addTo(map)
                     .bindPopup('Doctor: ' + doctor.name)
                     .openPopup();
             }

@@ -1,10 +1,6 @@
 import geocoder
 import math
-
-def your_location():
-    g = geocoder.ip('me')
-    latitude, longitude = g.latlng
-    return latitude, longitude
+from app import db
 
 # define a function to calculate distance between two points 
 # using the latitute and longitude and return the nearest distance
@@ -32,13 +28,16 @@ def haversine(lat1, lon1, lat2, lon2):
 
     return distance
 
-def find_nearest_doctor(user_latitude, user_longitude, doctors):
+
+def find_nearest_doctor(user_latitude, user_longitude):
     nearest_doctor = None
     nearest_distance = float('inf')
 
-    for doctor in doctors:
-        doctor_latitude = doctor['latitude']
-        doctor_longitude = doctor['longitude']
+    Doctor = doctors.query.all()
+
+    for doctor in Doctor:
+        doctor_latitude = doctor.latitude
+        doctor_longitude = doctor.longitude
         distance = haversine(user_latitude, user_longitude, doctor_latitude, doctor_longitude)
 
         if distance < nearest_distance:
@@ -46,7 +45,3 @@ def find_nearest_doctor(user_latitude, user_longitude, doctors):
             nearest_doctor = doctor
 
     return nearest_doctor, nearest_distance
-
-
-
-
