@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Info</title>
+</head>
+<body>
+
+<form onsubmit="event.preventDefault(); getMedicineInfo();">
+    <label for="partial_name">Enter partial name:</label>
+    <input type="text" id="partial_name" name="partial_name" required>
+    <input type="submit" value="Get Medicine Info">
+</form>
+
+<div id="medicine_info"></div>
+
+<script>
+    function getMedicineInfo() {
+        var partialName = document.getElementById('partial_name').value;
+
+        // Make an AJAX request to the Flask backend
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/medicine_info', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                displayMedicineInfo(response);
+            }
+        };
+
+        // Send data as form data
+        xhr.send('partial_name=' + encodeURIComponent(partialName));
+    }
+
+    function displayMedicineInfo(details) {
+        var infoDiv = document.getElementById('medicine_info');
+        infoDiv.innerHTML = '';
+
+        if (details.error) {
+            infoDiv.innerHTML = '<p>' + details.error + '</p>';
+        } else if (details.matches) {
+            var matchesHTML = '<h2>Multiple Matches Found</h2>';
+            matchesHTML += '<ul>';
+            details.matches.forEach(function (match) {
+                matchesHTML += '<li>' + match.name + '</li>';
+            });
+            matchesHTML += '</ul>';
+            infoDiv.innerHTML = matchesHTML;
+        } else {
+            var detailsHTML = '<h2>Medicine Details</h2>';
+            detailsHTML += '<p>Use: ' + details.use + '</p>';
+            detailsHTML += '<p>Side Effects: ' + details.side_effects + '</p>';
+            detailsHTML += '<p>Substitutes: ' + details.substitutes + '</p>';
+            infoDiv.innerHTML = detailsHTML;
+        }
+    }
+</script>
+
+</body>
+</html>
