@@ -1,10 +1,12 @@
 import json
 from flask import Flask, render_template, request
+from flask import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from Models import DecisionTreeModel, RandomForestModel, NaiveBayesModel
 from Models import l1
 from my_location import your_location
 import math
+from medicine import get_medicine_details
 
 app = Flask(__name__)
 
@@ -115,5 +117,21 @@ def doctor():
 
     return render_template('nearest_doctor.html', latitude=user_latitude, longitude=user_longitude, all_doctors_json=all_doctors_json, nearest_doctors_json=nearest_doctors_json, nearest_distance=nearest_distance)
 
+@app.route('/medicine_info', methods=['GET', 'POST'])
+def medicine_info():
+    if request.method == 'POST':
+        partial_name = request.form.get('partial_name', '')
+        matches = get_medicine_details(partial_name)
+        return render_template('medicine_info.html', matches=matches)
+
+    return render_template('medicine_info.html')
+
+@app.route('/medicine_detail', methods=['POST'])
+def medicine_detail():
+    selected_medicine = request.form.get('selected_medicine', '')
+    details = get_medicine_details(selected_medicine)
+    return render_template('medicine_detail.html', details=details)
+
+
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True)
