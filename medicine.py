@@ -1,7 +1,8 @@
 import pandas as pd
 
-df = pd.read_csv('Dataset/medicine_dataset.csv', low_memory=False)
-df = df.iloc[:, [0, 1, 2, 3, 4, 7, 8, 9, 49]]
+df_unfiltered = pd.read_csv('Dataset/medicine_dataset.csv', low_memory=False)
+df_unfiltered = df_unfiltered.iloc[:, [0, 1, 2, 3, 4, 7, 8, 9, 49]]
+df = df_unfiltered.dropna()
 
 def get_medicine_details(partial_name):
     matching_rows = df[df['name'].str.contains(partial_name, case=False, na=False)]

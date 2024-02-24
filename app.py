@@ -121,7 +121,9 @@ def doctor():
 def medicine_info():
     if request.method == 'POST':
         partial_name = request.form.get('partial_name', '')
+        # print("Partial Name:", partial_name)
         matches = get_medicine_details(partial_name)
+        # print("Matches:", matches)
         return render_template('medicine_info.html', matches=matches)
 
     return render_template('medicine_info.html')
@@ -129,7 +131,9 @@ def medicine_info():
 @app.route('/medicine_detail', methods=['POST'])
 def medicine_detail():
     selected_medicine = request.form.get('selected_medicine', '')
+    # print("Selected Medicine:", selected_medicine)
     details = get_medicine_details(selected_medicine)
+    # print("Details:", details)
     return render_template('medicine_detail.html', details=details)
 
 
