@@ -26,4 +26,9 @@ copy & paste this
 ```
 in a new tab in your browser 
 
+The MongoDB server is running at
+```
+mongodb://localhost:27017
+```
+
 # ❗ Our Application is still in Development phase 
