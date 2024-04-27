@@ -53,14 +53,37 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <!-- Placeholder for your circular logo -->
-        </div>
-        <input type="text" placeholder="Email">
-        <input type="password" placeholder="Password">
-        <button>Login</button>
-        <button>Register</button>
+    <div class="loginbox">
+        <img src="static/images/avatar.png" class="avatar">
+        <h1>Login Here</h1>
+
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/login">
+            <!-- Email input field -->
+            <p>Email</p>
+            <input type="email" name="email" placeholder="Enter Email" required>
+            <!-- Password input field -->
+            <p>Password</p>
+            <input type="password" name="password" placeholder="Enter Password" required>
+            <!-- Login buttons for patient and doctor -->
+            <p>Login as:</p>
+            <button type="submit" name="user_type" value="patient">Patient</button>
+            <button type="submit" name="user_type" value="doctor">Doctor</button><br><br>
+            <!-- Link to register as a doctor -->
+            <a href="/register_as_doctor">Don't have a Doctor's account?</a><br><br>
+            <!-- Link to register as a patient -->
+            <a href="/register_as_patient">Don't have a Patient's account?</a>
+        </form>
     </div>
 </body>
 </html>
