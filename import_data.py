@@ -1,5 +1,5 @@
 from flask import Flask
-from app import db, Doctor
+from api.app import db, Doctor
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///doctors.db'  # Make sure to configure the database URI
