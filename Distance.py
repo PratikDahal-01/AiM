@@ -1,4 +1,5 @@
 import math
+
 # Function to calculate the distance between two points using latitude and longitude
 def haversine(lat1, lon1, lat2, lon2):
     # Radius of the Earth in kilometers
@@ -23,15 +24,15 @@ def haversine(lat1, lon1, lat2, lon2):
     return distance
 
 # Function to find the nearest doctor based on user's location
-def find_nearest_doctor(user_latitude, user_longitude):
+def find_nearest_doctor(user_latitude, user_longitude,mongo):
     nearest_doctor = None
     nearest_distance = float('inf')
 
-    doctors = Doctor.query.all()
+    doctors = list(mongo.db.Doctor.find())
 
     for doctor in doctors:
-        doctor_latitude = doctor.latitude
-        doctor_longitude = doctor.longitude
+        doctor_latitude = doctor['latitude']
+        doctor_longitude = doctor['longitude']
         distance = haversine(user_latitude, user_longitude, doctor_latitude, doctor_longitude)
 
         if distance < nearest_distance:

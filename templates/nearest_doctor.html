@@ -2,61 +2,52 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medicine Info</title>
+    <title>Nearest Doctor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 </head>
 <body>
 
-<form onsubmit="event.preventDefault(); getMedicineInfo();">
-    <label for="partial_name">Enter partial name:</label>
-    <input type="text" id="partial_name" name="partial_name" required>
-    <input type="submit" value="Get Medicine Info">
-</form>
-
-<div id="medicine_info"></div>
+<div id="map" style="height: 600px;"></div>
 
 <script>
-    function getMedicineInfo() {
-        var partialName = document.getElementById('partial_name').value;
+    // Initialize the map and set its view
+    var map = L.map('map').setView([{{ latitude }}, {{ longitude }}], 13);
 
-        // Make an AJAX request to the Flask backend
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/medicine_info', true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    // Add a tile layer to the map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+    }).addTo(map);
 
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                var response = JSON.parse(xhr.responseText);
-                displayMedicineInfo(response);
-            }
-        };
+    // Add the user's location to the map as a blue marker
+    var userMarker = L.marker([{{ latitude }}, {{ longitude }}], {
+        icon: L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/252/252025.png',  // Blue arrow or marker icon URL
+            iconSize: [38, 38],
+            iconAnchor: [22, 94],
+            popupAnchor: [-3, -76],
+        })
+    }).addTo(map).bindPopup("<b>You are here</b>").openPopup();
 
-        // Send data as form data
-        xhr.send('partial_name=' + encodeURIComponent(partialName));
-    }
+    // Check if doctors data is available
+    {% if doctors %}
+    var doctors = {{ doctors | tojson }};
+    doctors.forEach(function(doctor) {
+        var marker = L.marker([doctor.latitude, doctor.longitude], {
+            icon: L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/252/252013.png',  // Red marker icon URL
+                iconSize: [38, 38],
+                iconAnchor: [22, 94],
+                popupAnchor: [-3, -76],
+            })
+        }).addTo(map);
 
-    function displayMedicineInfo(details) {
-        var infoDiv = document.getElementById('medicine_info');
-        infoDiv.innerHTML = '';
-
-        if (details.error) {
-            infoDiv.innerHTML = '<p>' + details.error + '</p>';
-        } else if (details.matches) {
-            var matchesHTML = '<h2>Multiple Matches Found</h2>';
-            matchesHTML += '<ul>';
-            details.matches.forEach(function (match) {
-                matchesHTML += '<li>' + match.name + '</li>';
-            });
-            matchesHTML += '</ul>';
-            infoDiv.innerHTML = matchesHTML;
-        } else {
-            var detailsHTML = '<h2>Medicine Details</h2>';
-            detailsHTML += '<p>Use: ' + details.use + '</p>';
-            detailsHTML += '<p>Side Effects: ' + details.side_effects + '</p>';
-            detailsHTML += '<p>Substitutes: ' + details.substitutes + '</p>';
-            infoDiv.innerHTML = detailsHTML;
-        }
-    }
+        // Add a popup with the doctor's details
+        marker.bindPopup("<b>" + doctor.name + "</b><br>Department: " + doctor.department);
+    });
+    {% else %}
+    console.log("No doctors data available.");
+    {% endif %}
 </script>
 
 </body>
