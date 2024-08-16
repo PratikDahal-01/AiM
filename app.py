@@ -187,7 +187,9 @@ def doctor():
     user_latitude, user_longitude = your_location()
     nearest_doctor, nearest_distance = find_nearest_doctor(user_latitude, user_longitude)
 
-    all_doctors = Doctor.query.all()
+
+    doctors = mongo.db.Doctor.find()  # This retrieves all doctors from the 'Doctor' collection
+
 
     # Convert nearest_doctor to a dictionary
     nearest_doctor_dict = {
