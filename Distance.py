@@ -24,7 +24,7 @@ def haversine(lat1, lon1, lat2, lon2):
     return distance
 
 # Function to find the nearest doctor based on user's location
-def find_nearest_doctor(user_latitude, user_longitude):
+def find_nearest_doctor(user_latitude, user_longitude,mongo):
     nearest_doctor = None
     nearest_distance = float('inf')
 

@@ -9,6 +9,7 @@ from flask_login import LoginManager, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
 from Distance import find_nearest_doctor,haversine
+from Lang_long import get_lat_long
 
 app = Flask(__name__)
 
@@ -102,6 +103,11 @@ def register_Doctor():
         email = request.form.get('email')
         password = request.form.get('password')
 
+        latitude, longitude = get_lat_long(address)
+        if latitude is None or longitude is None:
+            flash("Address could not be geocoded.", "danger")
+            return render_template("Doctor Register.html")
+
         doctor = {
             'name': name,
             'department': department,
@@ -109,10 +115,11 @@ def register_Doctor():
             'gender': gender,
             'contact_info': contact_info,
             'address': address,
+            'latitude': latitude,
+            'longitude': longitude,
             'email': email,
             'password': generate_password_hash(password)  # Hash the password before storing
         }
-
         try:
             result = mongo.db.Doctor.insert_one(doctor)
             print("Insertion result:", result)
@@ -185,35 +192,29 @@ def predict():
 @app.route('/doctor')
 def doctor():
     user_latitude, user_longitude = your_location()
-    nearest_doctor, nearest_distance = find_nearest_doctor(user_latitude, user_longitude)
 
+    # Retrieve all doctors from the MongoDB database
+    doctors_cursor = mongo.db.Doctor.find()
 
-    doctors = mongo.db.Doctor.find()  # This retrieves all doctors from the 'Doctor' collection
-
-
-    # Convert nearest_doctor to a dictionary
-    nearest_doctor_dict = {
-        'id': nearest_doctor.id,
-        'name': nearest_doctor.name,
-        'latitude': nearest_doctor.latitude,
-        'longitude': nearest_doctor.longitude
-    }
-
-    # Convert all_doctors to a list of dictionaries
+    # Prepare doctors' data for Leaflet
     all_doctors_list = [
         {
-            'id': doctor.id,
-            'name': doctor.name,
-            'latitude': doctor.latitude,
-            'longitude': doctor.longitude
+            'name': doctor['name'],
+            'latitude': doctor.get('latitude'),
+            'longitude': doctor.get('longitude'),
+            'department': doctor.get('department')
         }
-        for doctor in all_doctors
+        for doctor in doctors_cursor
+        if doctor.get('latitude') is not None and doctor.get('longitude') is not None
     ]
 
-    nearest_doctors_json = json.dumps(nearest_doctor_dict)
-    all_doctors_json = json.dumps(all_doctors_list)
+    # Ensure that doctors is defined even if there are no doctors
+    if not all_doctors_list:
+        all_doctors_list = []
 
-    return render_template('nearest_doctor.html', latitude=user_latitude, longitude=user_longitude, all_doctors_json=all_doctors_json, nearest_doctors_json=nearest_doctors_json, nearest_distance=nearest_distance)
+    return render_template('nearest_doctor.html', latitude=user_latitude, longitude=user_longitude, doctors=all_doctors_list)
+
+
 
 @app.route('/medicine_info', methods=['GET', 'POST'])
 def medicine_info():
