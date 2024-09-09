@@ -74,11 +74,22 @@ def patient_dashboard():
     if 'user_id' in session:
         patient_id = ObjectId(session['user_id'])
         patient = mongo.db.Patient.find_one({'_id': patient_id})
+
         if patient:
-            user_name = patient.get('name')  # To reflect the name of the patient in the dashboard
-            return render_template('Patient_Dashboard.html', patient=patient, user_name=user_name)
+            # Check if the patient is a first-timer or a returnee
+            if patient.get('Info_Filled') == 'no':
+                # First-time visitor, render the landing page
+                user_name = patient.get('name')
+                return render_template('Patient_Landing.html', patient=patient, user_name=user_name)
+            else:
+                # Returnee, render the dashboard
+                user_name = patient.get('name')  # Patient's name for the dashboard
+                return render_template('Patient_Dashboard.html', patient=patient, user_name=user_name)
+
+    # If no user is logged in, redirect to the login page
     flash("You need to login first!", "warning")
     return redirect(url_for('login'))
+
 
 @app.route('/doctor_dashboard')
 def doctor_dashboard():
@@ -148,7 +159,8 @@ def register_patient():
             'contact_info': contact_info,
             'address': address,
             'email': email,
-            'password': generate_password_hash(password)  # Hash the password before storing
+            'password': generate_password_hash(password),  # Hash the password before storing
+            'Info_Filled': 'no'
         }
 
         try:
@@ -161,8 +173,29 @@ def register_patient():
 
     return render_template("Patient Register.html")
 
+@app.route('/Patient_Additional_Info', methods=['GET', 'POST'])
+def patient_additional_info():
+    if request.method == 'POST':
+        patient_id = ObjectId(session['user_id'])
+        patient = mongo.db.Patient.find_one({'_id': patient_id})
 
+        if patient:
+            patient['Info_Filled'] = 'yes'
+            patient['blood_group'] = request.form.get('blood_group')
+            patient['height'] = request.form.get('height')
+            patient['weight'] = request.form.get('weight')
+            patient['allergies'] = request.form.get('allergies')
+            patient['medical_history'] = request.form.get('medical_history')
 
+            try:
+                result = mongo.db.Patient.update_one({'_id': patient_id}, {'$set': patient})
+                print("Update result:", result)
+                flash("Additional information added successfully!", "success")
+            except Exception as e:
+                print("Error updating patient:", e)
+                flash("Error adding additional information", "danger")
+
+    return render_template('Patient_Additional_Info.html')
 
 @app.route('/logout')
 def logout():
@@ -195,7 +228,6 @@ def doctor():
 
     # Retrieve all doctors from the MongoDB database
     doctors_cursor = mongo.db.Doctor.find()
-
     # Prepare doctors' data for Leaflet
     all_doctors_list = [
         {
