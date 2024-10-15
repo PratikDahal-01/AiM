@@ -1,0 +1,30 @@
+/* DoctorCard.module.css */
+.doctorCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 200px;
+    height: 300px;
+}
+
+.doctorImage {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.doctorName {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.doctorSpeciality {
+    font-size: 14px;
+    color: gray;
+}
